@@ -1,0 +1,18 @@
+CREDITS
+
+Bootstrap framework - http://getbootstrap.com
+Free Google font Oswald - http://www.google.com/fonts/specimen/Oswald
+All background images are from - https://unsplash.com
+Stock Images For Team (NOT INCLUDED IN ZIP) by:People Images
+
+JS
+MasonJS - www.drewdahlman.com 
+Modernizer -
+MIXITUP - A CSS3 and JQuery Filter & Sort Plugin - http://mixitup.io
+jquery-label_better.js -  https://github.com/peachananr/label_better
+jQuery - www.jquery.com
+jquery.inview.js - http://remysharp.com/2009/01/26/element-in-view-event-plugin
+easyPieChart 
+BxSlider - http://bxslider.com
+grid.js - http://tympanus.net/codrops/2013/03/19/thumbnail-grid-with-expanding-preview/
+countUp.js - http://inorganik.github.io/countUp.js
