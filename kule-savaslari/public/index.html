@@ -1,0 +1,143 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Kule Savaşları</title>
+<style>
+  @font-face { font-family: 'Oyun'; font-weight: 400; font-display: block; src: url(assets/fonts/baloo-2-latin-ext-800-normal.woff2) format('woff2');
+    unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF; }
+  @font-face { font-family: 'Oyun'; font-weight: 400; font-display: block; src: url(assets/fonts/baloo-2-latin-800-normal.woff2) format('woff2');
+    unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD; }
+  html, body { margin: 0; height: 100%; background: #000; overflow: hidden; }
+  body { display: flex; align-items: center; justify-content: center; font-family: system-ui, sans-serif; }
+  #game { height: 100vh; width: calc(100vh * 9 / 16); max-width: 100vw; max-height: calc(100vw * 16 / 9); display: block; }
+  /* Kontrol paneli: H tuşu ile aç/kapat (yayında görünmesin diye varsayılan gizli) */
+  #panel { position: fixed; top: 10px; left: 10px; width: 300px; max-height: calc(100vh - 20px); overflow: auto;
+    background: rgba(12,16,32,0.94); color: #fff; border: 1px solid #f5c242; border-radius: 12px; padding: 12px;
+    font-size: 13px; z-index: 10; display: none; box-shadow: 0 8px 30px rgba(0,0,0,.6); }
+  #panel.open { display: block; }
+  #panel h3 { margin: 0 0 8px; font-size: 15px; color: #ffd34d; }
+  #panel h4 { margin: 12px 0 6px; font-size: 12px; color: #9fb4ff; text-transform: uppercase; letter-spacing: .05em; }
+  #panel input { width: 100%; box-sizing: border-box; padding: 7px 8px; border-radius: 8px; border: 1px solid #445; background: #0b0e1c; color: #fff; }
+  #panel button { margin: 2px 1px; padding: 6px 8px; border: 0; border-radius: 8px; cursor: pointer; font-weight: 600; font-size: 12px; color: #fff; background: #2b3b78; }
+  #panel button.r { background: #b3191e; } #panel button.b { background: #1b4fc0; }
+  #panel button:hover { filter: brightness(1.2); }
+  #status { margin: 6px 0; padding: 6px 8px; border-radius: 8px; background: #1c2240; }
+  #status.live { background: #0f5a26; }
+  .row { display: flex; gap: 4px; flex-wrap: wrap; }
+  .hint { color: #8b93b8; font-size: 11px; line-height: 1.5; }
+  #hint { position: fixed; bottom: 6px; left: 8px; color: rgba(255,255,255,.35); font-size: 11px; z-index: 5; }
+</style>
+</head>
+<body>
+<canvas id="game"></canvas>
+<div id="hint">H: kontrol paneli</div>
+
+<div id="panel">
+  <h3>⚔️ Kule Savaşları · Kontrol</h3>
+  <div id="status">bağlantı yok</div>
+  <h4>TikTok bağlantısı</h4>
+  <div class="row" style="flex-wrap:nowrap">
+    <input id="username" placeholder="@kullaniciadi" autocomplete="off">
+    <button id="btnConnect">Bağlan</button>
+  </div>
+  <div class="row"><button id="btnDisconnect">Bağlantıyı kes</button></div>
+  <div class="hint">Yayın açıkken kendi TikTok kullanıcı adını yaz. Sunucu (npm start) çalışıyor olmalı.</div>
+
+  <h4>Test</h4>
+  <div class="row">
+    <button id="btnDemo">🤖 Demo botları: KAPALI</button>
+  </div>
+  <div class="row">
+    <button class="r" data-sim="join:red">+ Kırmızı oyuncu</button>
+    <button class="b" data-sim="join:blue">+ Mavi oyuncu</button>
+  </div>
+  <div class="row">
+    <button class="r" data-sim="like:red">❤️ Beğeni</button>
+    <button class="r" data-sim="cannon:red">💣 Top</button>
+    <button class="r" data-sim="shield:red">🛡 Kalkan</button>
+    <button class="r" data-sim="repair:red">🔨 Tamir</button>
+  </div>
+  <div class="row">
+    <button class="b" data-sim="like:blue">❤️ Beğeni</button>
+    <button class="b" data-sim="cannon:blue">💣 Top</button>
+    <button class="b" data-sim="shield:blue">🛡 Kalkan</button>
+    <button class="b" data-sim="repair:blue">🔨 Tamir</button>
+  </div>
+
+  <h4>Oyun</h4>
+  <div class="row">
+    <button id="btnReset">🔄 Turu yeniden başlat</button>
+    <button id="btnSound">🔊 Ses: AÇIK</button>
+    <button id="btnWins">Galibiyetleri sıfırla</button>
+    <button id="btnClear">Oyuncuları temizle</button>
+    <button id="btnFull">⛶ Tam ekran</button>
+  </div>
+  <div class="hint">Kısayollar: H panel · D demo · M ses · R tur · 1/2 oyuncu ekle · Q/W beğeni</div>
+</div>
+
+<script src="config.js"></script>
+<script src="game.js"></script>
+<script src="net.js"></script>
+<script>
+(() => {
+  const $ = id => document.getElementById(id);
+  const panel = $('panel');
+  const togglePanel = () => panel.classList.toggle('open');
+  const params = new URLSearchParams(location.search);
+  if (params.get('panel') === '1') panel.classList.add('open');
+  setTimeout(() => { $('hint').style.display = 'none'; }, 8000);
+
+  Net.onStatus((s, live) => { $('status').textContent = s; $('status').classList.toggle('live', live); });
+  $('btnConnect').onclick = () => {
+    const u = $('username').value.trim().replace(/^@/, '');
+    if (u) { Net.send({ type: 'connect', username: u }); try { localStorage.setItem('ks_user', u); } catch (e) {} }
+  };
+  $('btnDisconnect').onclick = () => Net.send({ type: 'disconnect' });
+  try { $('username').value = localStorage.getItem('ks_user') || params.get('user') || ''; } catch (e) {}
+
+  const demoBtn = $('btnDemo');
+  const showDemo = () => demoBtn.textContent = '🤖 Demo botları: ' + (KS.demo ? 'AÇIK' : 'KAPALI');
+  demoBtn.onclick = () => { KS.setDemo(!KS.demo); showDemo(); };
+  showDemo();
+  const soundBtn = $('btnSound');
+  soundBtn.onclick = () => { soundBtn.textContent = '🔊 Ses: ' + (KS.toggleSound() ? 'AÇIK' : 'KAPALI'); };
+  $('btnReset').onclick = () => KS.resetRound();
+  $('btnWins').onclick = () => KS.resetWins();
+  $('btnClear').onclick = () => KS.clearPlayers();
+  $('btnFull').onclick = () => document.fullscreenElement ? document.exitFullscreen() : document.documentElement.requestFullscreen();
+
+  // Test olayları
+  const last = { red: null, blue: null };
+  function sim(action, team) {
+    if (action === 'join' || !last[team]) {
+      const u = KS.testUser();
+      KS.handle({ type: 'chat', user: u, comment: team === 'red' ? 'katıl kırmızı' : 'katıl mavi' });
+      last[team] = u;
+      if (action === 'join') return;
+    }
+    const u = last[team];
+    if (action === 'like') KS.handle({ type: 'like', user: u, count: 10 });
+    if (action === 'cannon') KS.handle({ type: 'gift', user: u, giftName: 'Doughnut', coins: 30, count: 1 });
+    if (action === 'shield') KS.handle({ type: 'gift', user: u, giftName: 'Finger Heart', coins: 5, count: 1 });
+    if (action === 'repair') KS.handle({ type: 'gift', user: u, giftName: 'Rose', coins: 1, count: 1 });
+  }
+  document.querySelectorAll('[data-sim]').forEach(b => b.onclick = () => { const [a, t] = b.dataset.sim.split(':'); sim(a, t); });
+
+  window.addEventListener('keydown', e => {
+    if (e.target.tagName === 'INPUT') return;
+    const k = e.key.toLowerCase();
+    if (k === 'h') togglePanel();
+    else if (k === 'd') { KS.setDemo(!KS.demo); showDemo(); }
+    else if (k === 'm') soundBtn.click();
+    else if (k === 'r') KS.resetRound();
+    else if (k === '1') sim('join', 'red');
+    else if (k === '2') sim('join', 'blue');
+    else if (k === 'q') sim('like', 'red');
+    else if (k === 'w') sim('like', 'blue');
+  });
+})();
+</script>
+</body>
+</html>
