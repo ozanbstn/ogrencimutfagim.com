@@ -1,0 +1,15 @@
+{
+  "name": "kule-savaslari",
+  "version": "1.0.0",
+  "description": "TikTok LIVE kule savaşı oyunu",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "tiktok-live-connector": "^2.5.0",
+    "ws": "^8.22.1"
+  },
+  "type": "module",
+  "private": true
+}
